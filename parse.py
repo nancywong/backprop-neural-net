@@ -6,7 +6,7 @@ Sample input files: param.txt, in.txt, teach.txt
 
 def parse_params(param_file):
     """Parses file containing parameters.
-    e.g. param.txt:
+    i.e. param.txt:
         containing 6 lines, each with a single value. First 3 lines
         (integers) specify the number of input, hidden, and output units
         respectively. The next 3 lines (real numbers) should specify the
@@ -19,13 +19,14 @@ def parse_params(param_file):
 
     with open(param_file, 'r') as f:
         for line in f:
-            params.append(line.splitlines()) # remove \n at end of line
+            l = line.splitlines()[0] # Remove \n at end of line
+            params.append(float(l)) # Convert string to float
 
     return params
 
 def parse_inputs(input_file):
     """Parses file containing input patterns.
-    e.g. in.txt:
+    i.e. in.txt:
         containing the input patterns, one pattern per line. each pattern
         is a sequence of values (assume only 0 or 1) separated by single
         spaces.
@@ -36,14 +37,15 @@ def parse_inputs(input_file):
 
     with open(input_file, 'r') as f:
         for line in f:
-            pattern = line.split()
+            # Convert string to list of floats
+            pattern = [float(p) for p in line.split()]
             input_patterns.append(pattern)
 
     return input_patterns
 
 def parse_targets(target_file):
     """Parses file containing teacher/target values.
-    e.g. teach.txt:
+    i.e. teach.txt:
         containing the teaching patterns. one pattern per line.
 
     Arguments: name of the teacher file, a string
@@ -52,7 +54,9 @@ def parse_targets(target_file):
 
     with open(target_file, 'r') as f:
         for line in f:
-            targets.append(line.splitlines()) # remove \n at end of line
+            # Convert string to list of floats
+            pattern = [float(p) for p in line.split()]
+            targets.append(pattern)
 
     return targets
 
