@@ -1,5 +1,7 @@
 """Implementation of backpropgating neural network."""
-import random, math
+import random
+
+from neuron import Neuron
 
 
 ### Misc Helper Functions
@@ -7,25 +9,6 @@ def small_rand():
     """Returns a small random value for initializing weights."""
     init_rand = 0.0 # can adjust this value
     return random.uniform(-init_rand, init_rand)
-
-
-class Neuron:
-    """Units for neural network.
-    Can be an input, hidden, or output neuron."""
-
-    def __init__(self):
-        self.value = 0 # output value
-
-
-    def activate(self, net_input):
-        """Sinoid activation function for a given unit."""
-        activation = 1 / (1 + math.exp(-net_input))
-        self.value = activation
-
-
-    def __repr__(self):
-        s = ('value:  ' + str(self.value) + '\n')
-        return s
 
 
 class BackPropagationNeuralNetwork:
@@ -50,7 +33,11 @@ class BackPropagationNeuralNetwork:
         self.hidden_units = []
         self.output_units = []
         self.weights = {} # map (Neuron1, Neuron2) -> weight
+        self.targets = {} # map output_neuron -> target value
         self.initialize_network()
+
+        # network settings
+        self.curr_pattern = [] # initialize for stochasticity in online learning
 
 
     def initialize_network(self):
@@ -72,26 +59,12 @@ class BackPropagationNeuralNetwork:
             for o in self.output_units:
                 self.weights[(h,o)] = small_rand()
 
-
-    def calculate_output_error(self, output, target):
-        """Calculate error between output and target values."""
-        diff_sum_squared = 0
-        # TODO
-        """ for each output:
-        diff = target - output
-        diff_sum_squred += (diff * diff)"""
-
-        pattern_err = 0.5 * diff_sum_squared
-
-        return pattern_err
-        pass
+        # Map output units to target values
+        for i, o in enumerate(self.output_units):
+            self.targets[o] = self.target_values[i]
 
 
-    def calculate_hidden_error(self, hidden, target):
-        pass
-
-
-    def calculate_population_error(self, weight_changes):
+    def calculate_population_error(self, pattern_error):
         """Calculate population error."""
         # TODO
         sum_err = 0
@@ -106,21 +79,11 @@ class BackPropagationNeuralNetwork:
         pass
 
 
-    def consolidate_err(self, batch_err, net_err):
-        """Add net error mapping to batch error mapping.
-        Return new batch error."""
-        # TODO: add net to batch err
-
-        return batch_err
-        pass
-
-
     def train(self):
         """Train neural network"""
 
         num_epochs = 0
         population_err = float('inf')  # set to max
-        weight_changes = {} # map (neuron1, neuron2) -> change value
 
         # Batch learning
         while self.ERROR_CRITERION < population_err:
@@ -129,24 +92,21 @@ class BackPropagationNeuralNetwork:
                 print num_epochs
                 print population_err
 
-            batch_err = {} # error per epoch, map (neuron1, neuron2) -> err val
-
-            for pattern in self.input_patterns:
+            random_patterns = self.input_patterns[:] # make a copy
+            random.shuffle(random_patterns)
+            for pattern in random_patterns:
+                self.curr_pattern = pattern
                 self.set_input_units(pattern)
 
                 # Forward propagation
                 self.feed_forward()
 
                 # Backward propagation
-                net_err, weight_changes = self.back_propagate()
+                # pattern_error = self.back_propagate()
+                self.back_propagate()
 
-                # Update weights using Delta Rule
-                self.update_weights(weight_changes)
-                batch_err = self.consolidate_err(batch_err, net_err)
-
-
-            # TODO: population_err += batch_err
-            population_err = self.calculate_population_error(weight_changes)
+            # TODO: population_err += pattern_error?
+            #population_err = self.calculate_population_error(weight_changes)
 
         pass
 
@@ -181,11 +141,36 @@ class BackPropagationNeuralNetwork:
         """Propagate backward, using target values to calculate error for
         weight changes for all output and hidden neurons.
         Return a map of (neuron1, neuron2) -> delta value."""
-        net_err = {}  # maps (neuron1, neuron2) -> error value
-        weight_changes = {}
 
-        # TODO backward calculations
-        return net_err, weight_changes
+        # 1. Calculate error
+        pattern_error = 0
+        for i, o in enumerate(self.output_units):
+            target = self.targets[o][i]
+            output = o.value
+            net_error = target - output
+
+            delta = o.calculate_err(net_error)
+            pattern_error += delta
+
+        for h in self.hidden_units:
+            net_error = 0
+            for o in self.output_units:
+                net_error += o.err * self.weights[(h,o)]
+
+            delta = h.calculate_err(net_error)
+            # TODO: do pattern errors account for hidden units?
+
+        # 2. Update weights using Delta Rule
+        for (pre, post) in self.weights:
+            n = self.LEARNING_CONSTANT
+            # TODO: double check pre and post
+            delta = post.err
+            val = pre.value
+
+            weight_change = n * delta * val
+            self.weights[(pre,post)] += weight_change
+
+        return pattern_error
 
 
     def set_input_units(self, pattern):
@@ -194,23 +179,13 @@ class BackPropagationNeuralNetwork:
             n.value = pattern[i]
 
 
-    def update_weights(self, weight_changes):
-        # TODO: for each entry in weight_changes, update_weight
-        pass
-
-
-    def update_weight(self, in_unit, out_unit, target):
-        o = in_unit.post_neighbors[out_unit] # output weight, aka significance
-        diff = target # - output?
-
-        delta = self.LEARNING_CONSTANT * o * diff
-        in_unit.post_neighbors[out_unit] += delta # update weight
-
-
     def predict(self, input_pattern):
         """Given input pattern, predict output by running it through the neural
         net."""
-        pass
+        self.set_input_units(input_pattern)
+        self.feed_forward()
+
+        return self.output_units
 
 
     def __repr__(self):
@@ -219,16 +194,19 @@ class BackPropagationNeuralNetwork:
         s += "Input units:\n"
         for i in self.input_units:
             s += i.__repr__()
+            s += '\n'
 
         s += '\n'
         s += "Hidden units:\n"
         for h in self.hidden_units:
             s += h.__repr__()
+            s += '\n'
 
         s += '\n'
         s += "Output units:\n"
         for o in self.output_units:
             s += o.__repr__()
+            s += '\n'
 
         return s
 
@@ -250,31 +228,15 @@ if __name__ == "__main__":
     print bpnn
     print ''
 
-    print 'Feedforward'
-    print 'Pattern 0:', bpnn.input_patterns[0]
-    bpnn.set_input_units(bpnn.input_patterns[0])
-    bpnn.feed_forward()
-    print bpnn
-    print ''
+    for i in xrange(4):
+        print 'Feedforward'
+        print 'Pattern ' + str(i), bpnn.input_patterns[i]
+        bpnn.set_input_units(bpnn.input_patterns[i])
+        bpnn.feed_forward()
+        print bpnn
+        print ''
 
-    print 'Feedforward'
-    print 'Pattern 1:', bpnn.input_patterns[1]
-    bpnn.set_input_units(bpnn.input_patterns[1])
-    bpnn.feed_forward()
-    print bpnn
-    print ''
-
-    print 'Feedforward'
-    print 'Pattern 2:', bpnn.input_patterns[2]
-    bpnn.set_input_units(bpnn.input_patterns[2])
-    bpnn.feed_forward()
-    print bpnn
-    print ''
-
-    print 'Feedforward'
-    print 'Pattern 3:', bpnn.input_patterns[3]
-    bpnn.set_input_units(bpnn.input_patterns[3])
-    bpnn.feed_forward()
-    print bpnn
-    print ''
-
+        print 'Backprop...'
+        bpnn.back_propagate()
+        print bpnn
+        print ''
