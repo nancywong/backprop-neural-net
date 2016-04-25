@@ -1,11 +1,11 @@
 """Implementation of backpropgating neural network."""
-import random
+import random, math
 
 
 ### Misc Helper Functions
 def small_rand():
     """Returns a small random value for initializing weights."""
-    init_rand = 0.3 # can adjust this value
+    init_rand = 0.0 # can adjust this value
     return random.uniform(-init_rand, init_rand)
 
 
@@ -14,29 +14,17 @@ class Neuron:
     Can be an input, hidden, or output neuron."""
 
     def __init__(self):
-        self.value = 0
-        self.pre_neighbors = {} # map input Neurons -> weights
-        self.post_neighbors = {} # map output Neurons -> weights
+        self.value = 0 # output value
 
 
-    def update_weight(self, isForward, neuron, weight):
-        if isForward:
-            # forward propagation weight change
-            self.pre_neighbors[neuron] = weight
-        else:
-            # backward propagation weight change
-            self.post_neighbors[neuron] = weight
-
-
-    def activate(self, inputs):
+    def activate(self, net_input):
         """Sinoid activation function for a given unit."""
-        pass
+        activation = 1 / (1 + math.exp(-net_input))
+        self.value = activation
 
 
     def __repr__(self):
         s = ('value:  ' + str(self.value) + '\n')
-             # '  pre:  \n' + str(self.pre_neighbors.__repr__()) + '\n' +
-             # '  post: \n' + str(self.post_neighbors.__repr__()) + '\n')
         return s
 
 
@@ -61,54 +49,34 @@ class BackPropagationNeuralNetwork:
         self.input_units = []
         self.hidden_units = []
         self.output_units = []
+        self.weights = {} # map (Neuron1, Neuron2) -> weight
         self.initialize_network()
 
 
     def initialize_network(self):
         """Create network of Neurons."""
 
-        # Initialize input units
-        inputs = []
-        for _ in xrange(self.num_input_units):
-            n = Neuron()
-            inputs.append(n)
-
-        self.input_units = inputs
-
-        # Initialize hidden units
-        hidden = []
-        for _ in xrange(self.num_hidden_units):
-            n = Neuron()
-            hidden.append(n)
-
-        self.hidden_units = hidden
-
-        # Initialize output units
-        output = []
-        for _ in xrange(self.num_output_units):
-            n = Neuron()
-            output.append(n)
-
-        self.output_units = output
+        # Initialize units
+        self.input_units = [Neuron() for _ in xrange(self.num_input_units)]
+        self.hidden_units = [Neuron() for _ in xrange(self.num_hidden_units)]
+        self.output_units = [Neuron() for _ in xrange(self.num_output_units)]
 
         ## Set neighbors and weights with small random values
         # Connect each input unit with each hidden unit
         for i in self.input_units:
             for h in self.hidden_units:
-                i.post_neighbors[h] = small_rand()
-                h.pre_neighbors[i] = small_rand()
+                self.weights[(i,h)] = small_rand()
 
         # Connect each hidden unit with each output unit
         for h in self.hidden_units:
             for o in self.output_units:
-                h.post_neighbors[o] = small_rand()
-                o.pre_neighbors[h] = small_rand()
+                self.weights[(h,o)] = small_rand()
 
 
     def calculate_output_error(self, output, target):
         """Calculate error between output and target values."""
         diff_sum_squared = 0
-# TODO
+        # TODO
         """ for each output:
         diff = target - output
         diff_sum_squred += (diff * diff)"""
@@ -187,10 +155,26 @@ class BackPropagationNeuralNetwork:
         """Propagate forward and calculate output activations for each neuron
         in the network. Set output units to output activation values."""
 
-        # TODO forward calculations
-        self.output_units = [] # TODO set with calculated values
+        # Calculate input -> hidden unit weights
+        for i in self.input_units:
+            net_input = i.value
+            i.activate(net_input)
 
-        pass
+        # Calculate hidden -> output unit weights
+        for h in self.hidden_units:
+            net_input = 0
+            for i in self.input_units:
+                net_input += i.value * self.weights[(i,h)]
+
+            h.activate(net_input)
+
+        # Calculate output units
+        for o in self.output_units:
+            net_input = 0
+            for h in self.hidden_units:
+                net_input += h.value * self.weights[(h,o)]
+
+            o.activate(net_input)
 
 
     def back_propagate(self):
@@ -239,12 +223,12 @@ class BackPropagationNeuralNetwork:
         s += '\n'
         s += "Hidden units:\n"
         for h in self.hidden_units:
-            s += i.__repr__()
+            s += h.__repr__()
 
         s += '\n'
         s += "Output units:\n"
         for o in self.output_units:
-            s += i.__repr__()
+            s += o.__repr__()
 
         return s
 
@@ -264,3 +248,33 @@ if __name__ == "__main__":
 
     bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
     print bpnn
+    print ''
+
+    print 'Feedforward'
+    print 'Pattern 0:', bpnn.input_patterns[0]
+    bpnn.set_input_units(bpnn.input_patterns[0])
+    bpnn.feed_forward()
+    print bpnn
+    print ''
+
+    print 'Feedforward'
+    print 'Pattern 1:', bpnn.input_patterns[1]
+    bpnn.set_input_units(bpnn.input_patterns[1])
+    bpnn.feed_forward()
+    print bpnn
+    print ''
+
+    print 'Feedforward'
+    print 'Pattern 2:', bpnn.input_patterns[2]
+    bpnn.set_input_units(bpnn.input_patterns[2])
+    bpnn.feed_forward()
+    print bpnn
+    print ''
+
+    print 'Feedforward'
+    print 'Pattern 3:', bpnn.input_patterns[3]
+    bpnn.set_input_units(bpnn.input_patterns[3])
+    bpnn.feed_forward()
+    print bpnn
+    print ''
+
