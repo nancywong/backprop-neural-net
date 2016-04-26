@@ -1,7 +1,7 @@
 .PHONY: clean run
 
 run: clean
-	python backprop.py
+	python main.py
 
 parse: clean
 	python parse.py
