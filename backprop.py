@@ -38,18 +38,20 @@ class BackPropagationNeuralNetwork:
         self.input_patterns = inputs_list
         self.target_values = targets_list
 
-        # Initialize units
-        self.input_units = []
-        self.hidden_units = []
-        self.output_units = []
+        # Initialize units, values, and network settings
         self.weights = {} # map (Neuron1, Neuron2) -> weight
         self.pattern_targets = {} # map pattern (list) -> target (list)
-        self.initialize_network()
+        self.momentum_values = {} # map (n1, n2) -> last weight change value
 
-        # network settings
         self.population_err = float('inf') # gradient descent from max float
         self.curr_pattern = [] # initialize for stochasticity in online learning
         self.curr_target = []
+
+        self.input_units = []
+        self.hidden_units = []
+        self.output_units = []
+
+        self.initialize_network()
 
 
     def initialize_network(self):
@@ -73,11 +75,13 @@ class BackPropagationNeuralNetwork:
         for i in self.input_units:
             for h in self.hidden_units:
                 self.weights[(i,h)] = small_rand()
+                self.momentum_values[(i,h)] = 0.0 # set initial momentum
 
         # Connect each hidden unit with each output unit
         for h in self.hidden_units:
             for o in self.output_units:
                 self.weights[(h,o)] = small_rand()
+                self.momentum_values[(h,o)] = 0.0 # set initial momentum
 
         # Map input patterns to target values
         for i, p in enumerate(self.input_patterns):
@@ -197,14 +201,12 @@ class BackPropagationNeuralNetwork:
         for (pre, post) in self.weights:
             n = self.LEARNING_CONSTANT
             delta = post.err
-            val = pre.value
+            output = pre.value
+            momentum = self.MOMENTUM_CONSTANT * self.momentum_values[(pre,post)]
 
-            weight_change = n * delta * val
+            weight_change = n*delta*output + momentum
             self.weights[(pre,post)] += weight_change
-            #print 'weight change'
-            #print 'pre, post', pre, post
-            #print 'n, delta, val', n, delta, val
-            #print 'change', weight_change
+            self.momentum_values[(pre,post)] = weight_change
 
         return pattern_error
 
