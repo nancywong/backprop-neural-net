@@ -31,24 +31,7 @@ def test_xor():
     inputs =  parse_inputs('in.txt')
     targets = parse_targets('teach.txt')
 
-    print 'params: ', params
-    print 'inputs: ', inputs
-    print 'targets:',  targets
-    print ''
-
-    bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
-    print bpnn
-    print ''
-
-    bpnn.train()
-    print bpnn
-
-    # Predict
-    print 'Predicting 0,0; 0,1; 1,0; 1,1'
-    print bpnn.predict([0.0,0.0]) # 0
-    print bpnn.predict([0.0,1.0]) # 1
-    print bpnn.predict([1.0,0.0]) # 1
-    print bpnn.predict([1.0,1.0]) # 0
+    test(params, inputs, targets)
 
 
 def test_3bit():
@@ -58,23 +41,70 @@ def test_3bit():
     inputs = parse_inputs('data/3bit-parity-in.txt')
     targets = parse_targets('data/3bit-parity-teach.txt')
 
+    test(params, inputs, targets)
+
+
+def test_4bit():
+    print '4bit:'
+
+    params = parse_params('data/4bit-parity-param.txt')
+    inputs = parse_inputs('data/4bit-parity-in.txt')
+    targets = parse_targets('data/4bit-parity-teach.txt')
+
+    test(params, inputs, targets)
+
+
+def test_encoder():
+    print 'encoder:'
+
+    params = parse_params('data/encoder-param.txt')
+    inputs = parse_inputs('data/encoder-in.txt')
+    targets = parse_targets('data/encoder-teach.txt')
+
+    test(params, inputs, targets)
+
+
+def test_five_three_five():
+    print '5-3-5 network'
+
+    params = parse_params('data/5-3-5-param.txt')
+    inputs = parse_inputs('data/5-3-5-in.txt')
+    targets = parse_targets('data/5-3-5-teach.txt')
+
+    test(params, inputs, targets)
+
+
+def test_iris():
+    print 'iris network'
+
+    params = parse_params('data/iris-param.txt')
+    inputs = parse_inputs('data/iris-in.txt')
+    targets = parse_targets('data/iris-teach.txt')
+
+    test(params, inputs, targets)
+
+
+def test(params, inputs, targets):
     bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
-    print bpnn
-    print ''
 
+    print 'Training...'
     bpnn.train()
-    print bpnn
-    print 'Predicting...'
-    print bpnn.predict([1,1,1])
-    print bpnn.predict([1,1,0])
-    print bpnn.predict([1,0,1])
 
-    print bpnn
+    print 'Predicting...'
+    for idx, n in enumerate(inputs):
+        outputs = bpnn.predict(n)
+
+        print 'Target:', targets[idx]
+
+        out = []
+        for o in outputs:
+            out.append(o.value)
+        print 'Actual:  ', out
 
 
 if __name__ == '__main__':
     print "Running backprop... \n"
 
-    # test_xor()
-    test_3bit()
+    test_xor()
+    # test_3bit()
 
