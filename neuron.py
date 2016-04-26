@@ -29,8 +29,6 @@ class Neuron:
         error_term = net_err * (self.value * (1.0 - self.value)) # chain rule
         self.err = error_term # store error for weight change
 
-        return error_term
-
 
     def __repr__(self):
         s = (self.layer + ' Unit\n' +

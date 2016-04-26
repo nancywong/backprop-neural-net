@@ -25,9 +25,9 @@ def print_weights(bpnn):
         print 'Weight:', bpnn.weights[(n1,n2)]
         print ''
 
-if __name__ == '__main__':
-    print "Running backprop... \n"
 
+def test_xor():
+    print 'XOR:'
     params = parse_params('param.txt')
     inputs =  parse_inputs('in.txt')
     targets = parse_targets('teach.txt')
@@ -43,7 +43,6 @@ if __name__ == '__main__':
 
     bpnn.train()
     print bpnn
-    print_weights(bpnn)
 
     # Predict
     print 'Predicting 0,0; 0,1; 1,0; 1,1'
@@ -51,4 +50,32 @@ if __name__ == '__main__':
     print bpnn.predict([0.0,1.0]) # 1
     print bpnn.predict([1.0,0.0]) # 1
     print bpnn.predict([1.0,1.0]) # 0
+
+
+def test_3bit():
+    print '3bit:'
+
+    params = parse_params('data/3bit-parity-param.txt')
+    inputs = parse_inputs('data/3bit-parity-in.txt')
+    targets = parse_targets('data/3bit-parity-teach.txt')
+
+    bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
+    print bpnn
+    print ''
+
+    bpnn.train()
+    print bpnn
+    print 'Predicting...'
+    print bpnn.predict([1,1,1])
+    print bpnn.predict([1,1,0])
+    print bpnn.predict([1,0,1])
+
+    print bpnn
+
+
+if __name__ == '__main__':
+    print "Running backprop... \n"
+
+    # test_xor()
+    test_3bit()
 

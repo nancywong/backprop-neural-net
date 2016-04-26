@@ -175,11 +175,9 @@ class BackPropagationNeuralNetwork:
             target = float(self.curr_target[i])
             output = o.value
             net_error = target - output
-            # print 'target, output', target, output
-            # print 'net err', net_error
 
             pattern_error.append(net_error)
-            delta = o.calculate_err(net_error)
+            o.calculate_err(net_error)
 
         for h in self.hidden_units:
             # Calculate error between output and hidden units
@@ -187,7 +185,7 @@ class BackPropagationNeuralNetwork:
             for o in self.output_units:
                 net_error += o.err * self.weights[(h,o)]
 
-            delta = h.calculate_err(net_error)
+            h.calculate_err(net_error)
 
         for n in self.input_units:
             # Calculate error between hidden and input units
@@ -195,7 +193,7 @@ class BackPropagationNeuralNetwork:
             for h in self.hidden_units:
                 net_error += h.err * self.weights[(n,h)]
 
-            delta = n.calculate_err(net_error)
+            n.calculate_err(net_error)
 
         # 2. Update weights using Delta Rule
         for (pre, post) in self.weights:
@@ -206,6 +204,8 @@ class BackPropagationNeuralNetwork:
 
             weight_change = n*delta*output + momentum
             self.weights[(pre,post)] += weight_change
+
+            # Store previous weight change
             self.momentum_values[(pre,post)] = weight_change
 
         return pattern_error
