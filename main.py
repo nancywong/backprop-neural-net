@@ -76,6 +76,6 @@ def test_3bit():
 if __name__ == '__main__':
     print "Running backprop... \n"
 
-    # test_xor()
-    test_3bit()
+    test_xor()
+    # test_3bit()
 

@@ -50,6 +50,7 @@ class BackPropagationNeuralNetwork:
         self.input_units = []
         self.hidden_units = []
         self.output_units = []
+        self.bias_unit = Neuron('Bias')
 
         self.initialize_network()
 
@@ -58,17 +59,11 @@ class BackPropagationNeuralNetwork:
         """Create network of Neurons."""
 
         # Initialize units
-        self.input_units = [Neuron() for _ in xrange(self.num_input_units)]
-        self.hidden_units = [Neuron() for _ in xrange(self.num_hidden_units)]
-        self.output_units = [Neuron() for _ in xrange(self.num_output_units)]
+        self.input_units = [Neuron('Input') for _ in xrange(self.num_input_units)]
+        self.hidden_units = [Neuron('Hidden') for _ in xrange(self.num_hidden_units)]
+        self.output_units = [Neuron('Output') for _ in xrange(self.num_output_units)]
 
-        # Set unit type
-        for n in self.input_units:
-            n.layer = 'Input'
-        for h in self.hidden_units:
-            h.layer = 'Hidden'
-        for o in self.output_units:
-            o.layer = 'Output'
+        self.bias_unit.value = 1
 
         ## Set neighbors and weights with small random values
         # Connect each input unit with each hidden unit
@@ -82,6 +77,17 @@ class BackPropagationNeuralNetwork:
             for o in self.output_units:
                 self.weights[(h,o)] = small_rand()
                 self.momentum_values[(h,o)] = 0.0 # set initial momentum
+
+        # Connect bias unit to hidden and output units
+        b = self.bias_unit
+        for h in self.hidden_units:
+            self.weights[(b,h)] = small_rand()
+            self.momentum_values[(b,h)] = 0.0 # set initial momentum
+
+        for o in self.output_units:
+            self.weights[(b,o)] = small_rand()
+            self.momentum_values[(b,o)] = 0.0 # set initial momentum
+
 
         # Map input patterns to target values
         for i, p in enumerate(self.input_patterns):
@@ -141,10 +147,13 @@ class BackPropagationNeuralNetwork:
         """Propagate forward and calculate output activations for each neuron
         in the network. Set output units to output activation values."""
 
+        b = self.bias_unit
+
         # Calculate input -> hidden unit weights
         for i in self.input_units:
-            net_input = i.value
-            i.activate(net_input)
+            if i.layer is not 'Bias': # exclude bias unit in activation values
+                net_input = i.value
+                i.activate(net_input)
 
         # Calculate hidden -> output unit weights
         for h in self.hidden_units:
@@ -152,6 +161,7 @@ class BackPropagationNeuralNetwork:
             for i in self.input_units:
                 net_input += i.value * self.weights[(i,h)]
 
+            net_input += b.value * self.weights[(b,h)]
             h.activate(net_input)
 
         # Calculate output units
@@ -160,6 +170,7 @@ class BackPropagationNeuralNetwork:
             for h in self.hidden_units:
                 net_input += h.value * self.weights[(h,o)]
 
+            net_input += b.value * self.weights[(b,o)]
             o.activate(net_input)
 
 
@@ -195,6 +206,17 @@ class BackPropagationNeuralNetwork:
 
             n.calculate_err(net_error)
 
+        # Calculate error for bias unit
+        b = self.bias_unit
+        net_error = 0
+
+        for h in self.hidden_units:
+            net_error += h.err * self.weights[(b,h)]
+        for o in self.output_units:
+            net_error += o.err * self.weights[(b,o)]
+
+        b.calculate_err(net_error)
+
         # 2. Update weights using Delta Rule
         for (pre, post) in self.weights:
             n = self.LEARNING_CONSTANT
@@ -213,8 +235,8 @@ class BackPropagationNeuralNetwork:
 
     def set_input_units(self, pattern):
         """Load input units with pattern values."""
-        for i, n in enumerate(self.input_units):
-            n.value = pattern[i]
+        for idx, val in enumerate(pattern):
+            self.input_units[idx].value = val
 
 
     def predict(self, input_pattern):

@@ -4,10 +4,10 @@ class Neuron:
     """Units for neural network.
     Can be an input, hidden, or output neuron."""
 
-    def __init__(self):
+    def __init__(self, layer):
         self.value = 0.0 # activation value
         self.err = 0.0 # error term for back propagating
-        self.layer = '' # Input, Hidden, or Output (used for printing)
+        self.layer = layer # Input, Bias, Hidden, or Output (used for printing)
 
 
     def activate(self, net_input):
@@ -26,7 +26,10 @@ class Neuron:
 
         Stores error term in presynaptic neuron during backward pass to use for
         weight changes."""
-        error_term = net_err * (self.value * (1.0 - self.value)) # chain rule
+        if self.layer is 'Bias':
+            error_term = net_err
+        else:
+            error_term = net_err * (self.value * (1.0 - self.value)) # chain rule
         self.err = error_term # store error for weight change
 
 
