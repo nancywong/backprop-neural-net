@@ -25,30 +25,30 @@ def print_weights(bpnn):
         print 'Weight:', bpnn.weights[(n1,n2)]
         print ''
 
+if __name__ == '__main__':
+    print "Running backprop... \n"
 
-print "Running backprop... \n"
+    params = parse_params('param.txt')
+    inputs =  parse_inputs('in.txt')
+    targets = parse_targets('teach.txt')
 
-params = parse_params('param.txt')
-inputs =  parse_inputs('in.txt')
-targets = parse_targets('teach.txt')
+    print 'params: ', params
+    print 'inputs: ', inputs
+    print 'targets:',  targets
+    print ''
 
-print 'params: ', params
-print 'inputs: ', inputs
-print 'targets:',  targets
-print ''
+    bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
+    print bpnn
+    print ''
 
-bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
-print bpnn
-print ''
+    bpnn.train()
+    print bpnn
+    print_weights(bpnn)
 
-# prop_one_epoch(bpnn)
-bpnn.train()
-print bpnn
-print_weights(bpnn)
-
-# Predict
-bpnn.predict([0.0,0.0]) # 0
-bpnn.predict([0.0,1.0]) # 1
-bpnn.predict([1.0,0.0]) # 1
-bpnn.predict([1.0,1.0]) # 0
+    # Predict
+    print 'Predicting 0,0; 0,1; 1,0; 1,1'
+    print bpnn.predict([0.0,0.0]) # 0
+    print bpnn.predict([0.0,1.0]) # 1
+    print bpnn.predict([1.0,0.0]) # 1
+    print bpnn.predict([1.0,1.0]) # 0
 
