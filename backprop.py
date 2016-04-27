@@ -5,11 +5,6 @@ from neuron import Neuron
 
 
 ### Misc Helper Functions
-def small_rand():
-    """Returns a small random value for initializing weights."""
-    init_rand = 1.0 # can adjust this value
-    return random.uniform(-init_rand, init_rand)
-
 
 def sum_squares(pattern_errors):
     """Given a list of pattern error values, return a sum of squares of
@@ -34,6 +29,8 @@ class BackPropagationNeuralNetwork:
         self.MOMENTUM_CONSTANT = params_list[4]
         self.ERROR_CRITERION = params_list[5]
 
+        self.INITIAL_WEIGHT_RANGE = 1.0
+
         # Set input and values
         self.input_patterns = inputs_list
         self.target_values = targets_list
@@ -42,6 +39,7 @@ class BackPropagationNeuralNetwork:
         self.weights = {} # map (Neuron1, Neuron2) -> weight
         self.pattern_targets = {} # map pattern (list) -> target (list)
         self.momentum_values = {} # map (n1, n2) -> last weight change value
+        self.num_epochs = 0
 
         self.population_err = float('inf') # gradient descent from max float
         self.curr_pattern = [] # initialize for stochasticity in online learning
@@ -53,6 +51,12 @@ class BackPropagationNeuralNetwork:
         self.bias_unit = Neuron('Bias')
 
         self.initialize_network()
+
+
+    def small_rand(self):
+        """Returns a small random value for initializing weights."""
+        init_rand = self.INITIAL_WEIGHT_RANGE
+        return random.uniform(-init_rand, init_rand)
 
 
     def initialize_network(self):
@@ -69,23 +73,23 @@ class BackPropagationNeuralNetwork:
         # Connect each input unit with each hidden unit
         for i in self.input_units:
             for h in self.hidden_units:
-                self.weights[(i,h)] = small_rand()
+                self.weights[(i,h)] = self.small_rand()
                 self.momentum_values[(i,h)] = 0.0 # set initial momentum
 
         # Connect each hidden unit with each output unit
         for h in self.hidden_units:
             for o in self.output_units:
-                self.weights[(h,o)] = small_rand()
+                self.weights[(h,o)] = self.small_rand()
                 self.momentum_values[(h,o)] = 0.0 # set initial momentum
 
         # Connect bias unit to hidden and output units
         b = self.bias_unit
         for h in self.hidden_units:
-            self.weights[(b,h)] = small_rand()
+            self.weights[(b,h)] = self.small_rand()
             self.momentum_values[(b,h)] = 0.0 # set initial momentum
 
         for o in self.output_units:
-            self.weights[(b,o)] = small_rand()
+            self.weights[(b,o)] = self.small_rand()
             self.momentum_values[(b,o)] = 0.0 # set initial momentum
 
 
@@ -111,17 +115,20 @@ class BackPropagationNeuralNetwork:
     def train(self):
         """Train neural network"""
 
-        num_epochs = 0
+        self.num_epochs = 0
 
         # Batch learning
         while self.ERROR_CRITERION < self.population_err:
             # Print # of epochs and current population error every 100 epochs
-            num_epochs += 1
-            if num_epochs % 100 == 0:
-                print '# epochs:', num_epochs
-                print 'Pop err: ', self.population_err
-                print ''
-              #  print self, self.weights
+            self.num_epochs += 1
+          #  if self.num_epochs % 100 == 0:
+          #      print '# epochs:', self.num_epochs
+          #      print 'Pop err: ', self.population_err
+          #      print ''
+
+            if self.num_epochs > 25000:
+                print 'Took too long, try again...'
+                return False
 
             pattern_errors = []
 
@@ -142,6 +149,8 @@ class BackPropagationNeuralNetwork:
 
             self.set_population_error(pattern_errors)
 
+        return True
+
 
     def feed_forward(self):
         """Propagate forward and calculate output activations for each neuron
@@ -161,7 +170,7 @@ class BackPropagationNeuralNetwork:
             for i in self.input_units:
                 net_input += i.value * self.weights[(i,h)]
 
-            net_input += b.value * self.weights[(b,h)]
+            net_input += self.weights[(b,h)] # add bias
             h.activate(net_input)
 
         # Calculate output units
@@ -170,7 +179,7 @@ class BackPropagationNeuralNetwork:
             for h in self.hidden_units:
                 net_input += h.value * self.weights[(h,o)]
 
-            net_input += b.value * self.weights[(b,o)]
+            net_input += self.weights[(b,o)] # add bias
             o.activate(net_input)
 
 

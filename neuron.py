@@ -11,10 +11,16 @@ class Neuron:
 
 
     def activate(self, net_input):
-        """Sinoid activation function for a given unit.
+        """Activation function for a given unit.
         Stores activation output during forward pass to use in backward pass."""
-        activation = 1.0 / (1.0 + math.exp(-net_input))
+        activation = self.sine_activate(net_input)
         self.value = activation # store output for backward pass
+
+
+    def sine_activate(self, net_input):
+        """Sine activation function."""
+        activation = 1.0 / (1.0 + math.exp(-net_input))
+        return activation
 
 
     def calculate_err(self, net_err):
