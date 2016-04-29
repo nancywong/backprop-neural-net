@@ -4,8 +4,7 @@ from backprop import BackPropagationNeuralNetwork
 
 def print_intro():
     print 'Backpropagating Neural Network using Generalized Delta Rule.'
-    print 'Paramater, input, and target files should be in the current \n\
-            directory and named, respectively: \n \
+    print 'Paramater, input, and target files should be in the current directory and named, respectively: \n \
             param.txt \n \
             in.txt \n \
             teach.txt'
@@ -23,7 +22,7 @@ def print_menu():
 def predict(bpnn):
     prompt = 'Please input ' + str(bpnn.num_input_units) + ' numbers, separated by a space.'
     print prompt
-    print 'e.g. if there are 4 input units, type in \'0.224000  0.624000  0.067000  0.043000\''
+    print 'e.g. if there are 4 input units, type in \'0.918000  0.416000  0.949000  0.831000\''
 
     pattern = []
     usr_input = raw_input('Pattern: ')

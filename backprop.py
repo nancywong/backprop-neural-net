@@ -149,6 +149,7 @@ class BackPropagationNeuralNetwork:
 
             self.set_population_error(pattern_errors)
 
+        print '# of epochs:', self.num_epochs
         return True
 
 

@@ -1,4 +1,4 @@
-.PHONY: clean run
+.PHONY: run test parse clean
 
 run: clean
 	python main.py
