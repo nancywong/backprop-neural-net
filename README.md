@@ -40,15 +40,16 @@ Enter the number for the option you want. Note: The network cannot predict outpu
 
 ### File Descriptions
 Necessary files for running the main interface:
-- `main.py`		  contains the code for the text-based user interface
+- `main.py` 	contains the code for the text-based user interface
 - `backprop.py`	contains the code for the backpropagating neural network algorithm implementation
-- `neuron.py`		contains the code for the implementation of individual neurons
-- `parse.py`		  contains the code for parsing text files containing network parameters, input patterns, and target values
+- `neuron.py`	contains the code for the implementation of individual neurons
+- `parse.py`	contains the code for parsing text files containing network parameters, input patterns, and target values
 
-- `param.txt` 		see Setup
-- `in.txt` 	  	see Setup
-- `teach.txt` 		see Setup
+- `param.txt` 	see Setup
+- `in.txt` 	see Setup
+- `teach.txt` 	see Setup
 
 Helpful but not strictly necessary:
-- `test.py` 		  contains the code for testing various parameter values or data sets
-- `Makefile` 		contains Make rules for convenient cleanup, running, and testing of the network
+- `test.py` 	contains the code for testing various parameter values or data sets
+- `Makefile` 	contains Make rules for convenient cleanup, running, and testing of the network
+- `data/*` 	directory containing sample data sets, necessary for running tests in test.py
