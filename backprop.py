@@ -121,12 +121,12 @@ class BackPropagationNeuralNetwork:
         while self.ERROR_CRITERION < self.population_err:
             # Print # of epochs and current population error every 100 epochs
             self.num_epochs += 1
-          #  if self.num_epochs % 100 == 0:
-          #      print '# epochs:', self.num_epochs
-          #      print 'Pop err: ', self.population_err
-          #      print ''
+            if self.num_epochs % 100 == 0:
+                print '# epochs:', self.num_epochs
+                print 'Pop err: ', self.population_err
+                print ''
 
-            if self.num_epochs > 25000:
+            if self.num_epochs > 8000:
                 print 'Took too long, try again...'
                 return False
 
@@ -160,9 +160,8 @@ class BackPropagationNeuralNetwork:
 
         # Calculate input -> hidden unit weights
         for i in self.input_units:
-            if i.layer is not 'Bias': # exclude bias unit in activation values
-                net_input = i.value
-                i.activate(net_input)
+            net_input = i.value
+            i.activate(net_input)
 
         # Calculate hidden -> output unit weights
         for h in self.hidden_units:

@@ -76,9 +76,9 @@ def batch_test_encoder():
     inputs = parse_inputs('data/encoder-in.txt')
     targets = parse_targets('data/encoder-teach.txt')
 
+    weights = batch_test(params, inputs, targets, 3)
     learning = batch_test(params, inputs, targets, 1)
     momentum = batch_test(params, inputs, targets, 2)
-    weights = batch_test(params, inputs, targets, 3)
 
     return learning, momentum, weights
 
@@ -102,8 +102,8 @@ def batch_test_five_three_five():
     targets = parse_targets('data/5-3-5-teach.txt')
 
     learning = batch_test(params, inputs, targets, 1)
-    momentum = batch_test(params, inputs, targets, 2)
     weights = batch_test(params, inputs, targets, 3)
+    momentum = batch_test(params, inputs, targets, 2)
 
     return learning, momentum, weights
 
@@ -126,9 +126,9 @@ def batch_test_iris():
     inputs = parse_inputs('data/iris-in.txt')
     targets = parse_targets('data/iris-teach.txt')
 
+    weights = batch_test(params, inputs, targets, 3)
     learning = batch_test(params, inputs, targets, 1)
     momentum = batch_test(params, inputs, targets, 2)
-    weights = batch_test(params, inputs, targets, 3)
 
     return learning, momentum, weights
 
@@ -158,6 +158,7 @@ def test(params, inputs, targets):
     print 'Learning Constant:', bpnn.LEARNING_CONSTANT
     print 'Momentum Constant:', bpnn.MOMENTUM_CONSTANT
     print 'Initial Weight range:', bpnn.INITIAL_WEIGHT_RANGE
+    print 'Num epochs:', bpnn.num_epochs
 
     return bpnn.num_epochs
 
@@ -170,6 +171,14 @@ def batch_test(params, inputs, targets, variable):
     # Values: 0.1 to 1.0
     values = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
     epochs = []
+
+    # Set custom re-runs
+    if variable == 1: # learning
+        values = []
+    if variable == 2: # momentum
+        values = []
+    if variable == 3: # weights
+        values = []
 
     for v in values:
         run_epochs = []
@@ -227,24 +236,105 @@ def print_num_epochs(test_function):
     print s
 
 
-if __name__ == '__main__':
-    #print_num_epochs(test_xor)
-    #print_num_epochs(test_five_three_five)
-    #print_num_epochs(test_encoder)
+def batch_test_generalization_iris():
+    num_epochs = []
+    ratios = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 
-    epochs_easy = batch_test_five_three_five()
-    epochs_encoder = batch_test_encoder()
-    epochs_iris = batch_test_iris()
+    for r in ratios:
+        ne = test_generalization_iris(r)
+        num_epochs.append(ne)
+
+    return num_epochs
+
+
+def test_generalization_iris(training_set_ratio):
+    """Given a ratio k for number of training sets, test how well the network
+    generalizes on the last 10 samples."""
+    print 'Testing ratio:', training_set_ratio
+
+    params = parse_params('data/iris-param.txt')
+    inputs = parse_inputs('data/iris-in.txt')
+    targets = parse_targets('data/iris-teach.txt')
+
+    # Split up data sets for each iris species
+    SPECIES_SET_SIZE = len(inputs) / 3
+
+    c = training_set_ratio * SPECIES_SET_SIZE
+    c = int(c)
+
+    gen_inputs_species1 = inputs[:c]
+    gen_inputs_species2 = inputs[50:50+c]
+    gen_inputs_species3 = inputs[100:100+c]
+
+    gen_targets_species1 = targets[:c]
+    gen_targets_species2 = targets[50:50+c]
+    gen_targets_species3 = targets[100:100+c]
+
+    test_inputs = gen_inputs_species1[-10:] + \
+                  gen_inputs_species2[-10:] + \
+                  gen_inputs_species3[-10:]
+
+    test_targets = gen_targets_species1[-10:] + \
+                   gen_targets_species2[-10:] + \
+                   gen_targets_species3[-10:]
+
+    gen_inputs = gen_inputs_species1 + \
+                 gen_inputs_species2 + \
+                 gen_inputs_species3
+
+    gen_targets = gen_targets_species1 + \
+                  gen_targets_species2 + \
+                  gen_targets_species3
+
+    # Train network on subset
+    bpnn = BackPropagationNeuralNetwork(params, gen_inputs, gen_targets)
+    bpnn.train()
+
+    # Test network on unseen test set
+    errors = []
+    for i, ti in enumerate(test_inputs):
+        prediction = bpnn.predict(ti)
+        error = check_prediction(prediction, test_targets[i])
+        errors.append(error)
+
+    print 'Errors:', errors
+    return errors
+
+
+def check_prediction(prediction, target):
+    """Returned sum of differences squared as error measure."""
+
+    error_summed = 0.0
+    print 'prediction', prediction
+    for idx, val in enumerate(prediction):
+        err = target[idx] - val
+        squared = err*err
+        error_summed += squared
+
+    return error_summed
+
+
+if __name__ == '__main__':
+    print_num_epochs(test_xor)
+    print_num_epochs(test_five_three_five)
+    print_num_epochs(test_encoder)
+    print_num_epochs(test_iris)
+
+    batch_test_generalization_iris()
+
+    easy_epochs = batch_test_five_three_five()
+    encoder_epochs = batch_test_encoder()
+    iris_epochs = batch_test_iris()
 
     print 'Easy network:'
-    print epochs_easy
+    print easy_epochs
     print ''
 
     print 'Encoder network:'
-    print epochs_encoder
+    print encoder_epochs
     print ''
 
     print 'Iris network:'
-    print epochs_iris
+    print iris_epochs
     print ''
 

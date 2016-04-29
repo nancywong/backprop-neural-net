@@ -15,14 +15,15 @@ def print_menu():
     print 'Please input your selection and hit Enter.'
     print '1 - Train network with current settings.'
     print '2 - Give the network a pattern and see the predicted output.'
-    print '3 - Change network settings.'
-    print '4 - Exit.'
+    print '3 - View network settings.'
+    print '4 - Change network settings.'
+    print '5 - Exit.'
 
 
 def predict(bpnn):
-    prompt = 'Please input' + str(bpnn.num_input_units) + 'numbers, separated by a space.'
+    prompt = 'Please input ' + str(bpnn.num_input_units) + ' numbers, separated by a space.'
     print prompt
-    print 'e.g. if there are 2 input units, type in \'0 0\''
+    print 'e.g. if there are 4 input units, type in \'0.224000  0.624000  0.067000  0.043000\''
 
     pattern = []
     usr_input = raw_input('Pattern: ')
@@ -49,17 +50,32 @@ def predict(bpnn):
         print o.value
 
 
+def view_settings(bpnn):
+    print 'The learning constant is currently set to', bpnn.LEARNING_CONSTANT
+    print 'The momentum constant is currently set to', bpnn.MOMENTUM_CONSTANT
+    print 'The error criterion is currently set to', bpnn.ERROR_CRITERION
+    print 'The initial weight range is currently set to +=', bpnn.INITIAL_WEIGHT_RANGE
+
+
 def change_settings(bpnn):
+    print 'The learning constant is currently set to', bpnn.LEARNING_CONSTANT
     print 'What do you want to set the learning constant to?'
     usr_input = raw_input('Learning constant: ')
     bpnn.LEARNING_CONSTANT = float(usr_input)
 
+    print 'The momentum constant is currently set to', bpnn.MOMENTUM_CONSTANT
     print 'What do you want to set the momentum constant to?'
     usr_input = raw_input('Momentum constant: ')
     bpnn.MOMENTUM_CONSTANT = float(usr_input)
 
+    print 'The error criterion is currently set to', bpnn.ERROR_CRITERION
     print 'What do you want to set the error criterion to?'
     usr_input = raw_input('Error criterion: ')
+    bpnn.ERROR_CRITERION = float(usr_input)
+
+    print 'The initial weight range is currently set to +=', bpnn.INITIAL_WEIGHT_RANGE
+    print 'What do you want to set the initial weight range to?'
+    usr_input = raw_input('Initial weight range: +-')
     bpnn.ERROR_CRITERION = float(usr_input)
 
     print 'Settings changed. If you want to change the number of input, hidden, or output units, please do so in the first three lines of the param.txt file.'
@@ -78,8 +94,9 @@ if __name__ == '__main__':
 
     bpnn = BackPropagationNeuralNetwork(params, inputs, targets)
 
+    QUIT_VAL = 5
     # User input
-    while selection != 4:
+    while selection != QUIT_VAL:
         print ''
         print_menu()
         usr_input = raw_input('Enter a number: ')
@@ -87,7 +104,7 @@ if __name__ == '__main__':
         try:
             selection = int(usr_input)
         except ValueError:
-            print 'Please enter a number between 1 to 4.'
+            print 'Please enter a number between 1 to', QUIT_VAL
 
         if selection == 1:
             # Train network
@@ -103,13 +120,17 @@ if __name__ == '__main__':
                 predict(bpnn)
 
         elif selection == 3:
+            # View network settings
+            view_settings(bpnn)
+
+        elif selection == 4:
             # Change network settings
             change_settings(bpnn)
 
-        elif selection == 4:
+        elif selection == QUIT_VAL:
             break
 
         else:
-            print 'Please enter a number between 1 to 4.'
+            print 'Please enter a number between 1 to', QUIT_VAL
 
     print 'Bye!'
